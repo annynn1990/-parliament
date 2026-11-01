@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#09110f">
+  <meta name="description" content="黃名帝國議會互動議事廳：3D 議席配置、出席點名、議程與表決。">
+  <title>黃名帝國議會｜Wongming Parliament</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/base.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js"
+      }
+    }
+  </script>
+  <script type="module" src="js/app.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="黃名帝國議會首頁">
+        <div class="brand-seal" aria-hidden="true"><span>W</span></div>
+        <div>
+          <div class="eyebrow">WONGMING EMPIRE · LEGISLATURE</div>
+          <h1>黃名帝國議會</h1>
+        </div>
+      </a>
+      <div class="topbar-right">
+        <div class="session-chip"><span class="live-dot"></span><span id="session-status">議事示範模式</span></div>
+        <div class="session-meta">議會互動系統 <span class="meta-divider">/</span> PLENARY CHAMBER</div>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <aside class="panel agenda-panel">
+        <div class="panel-heading">
+          <div><div class="eyebrow">ORDER OF BUSINESS</div><h2>本次議程</h2></div>
+          <span class="panel-index">01</span>
+        </div>
+        <div class="agenda-session">
+          <div class="agenda-session-label">會議資訊</div>
+          <div class="agenda-session-title">議會全體會議</div>
+          <div class="agenda-session-sub">會期及會議日期可於正式啟用時設定</div>
+        </div>
+        <ol class="agenda-list" id="agenda-list">
+          <li><button class="agenda-item is-active" data-agenda="0"><span class="agenda-no">01</span><span><b>確認議程</b><small>開會程序及議程確認</small></span><span class="agenda-arrow">↗</span></button></li>
+          <li><button class="agenda-item" data-agenda="1"><span class="agenda-no">02</span><span><b>政府施政報告</b><small>施政說明及質詢</small></span><span class="agenda-arrow">↗</span></button></li>
+          <li><button class="agenda-item" data-agenda="2"><span class="agenda-no">03</span><span><b>法案審議</b><small>委員會報告及逐條討論</small></span><span class="agenda-arrow">↗</span></button></li>
+          <li><button class="agenda-item" data-agenda="3"><span class="agenda-no">04</span><span><b>臨時動議</b><small>議員提案及討論</small></span><span class="agenda-arrow">↗</span></button></li>
+        </ol>
+        <div class="agenda-note"><span class="note-mark">§</span><p>點選議程項目即可切換目前議事項目。議程文字可依正式議事規則調整。</p></div>
+      </aside>
+
+      <section class="chamber-panel">
+        <div class="chamber-heading">
+          <div><div class="eyebrow">THE IMPERIAL ASSEMBLY HALL</div><h2>議事廳</h2></div>
+          <div class="chamber-heading-right"><span class="hall-label">MAIN HALL</span><span class="hall-capacity"><i></i> 48 個議席</span></div>
+        </div>
+        <div class="chamber-stage">
+          <div id="loading-overlay" class="loading-overlay"><span class="loader-ring"></span><span>正在建構議事廳</span></div>
+          <div id="three-root" class="three-root" aria-label="可旋轉及點選的 3D 議事廳"></div>
+          <div class="stage-hint"><span class="hint-mouse">↔</span> 拖曳旋轉視角 <i></i> 滾輪縮放 <i></i> 點選議席</div>
+          <div class="stage-caption stage-caption-left"><span class="caption-line"></span>議席配置</div>
+          <div class="stage-caption stage-caption-right">選取席位以編輯議員資料 <span class="caption-line"></span></div>
+        </div>
+        <div class="seat-legend">
+          <span><i class="legend-dot dot-government"></i>執政黨團</span>
+          <span><i class="legend-dot dot-opposition"></i>在野黨團</span>
+          <span><i class="legend-dot dot-independent"></i>無黨籍</span>
+          <span><i class="legend-dot dot-unassigned"></i>待編列</span>
+          <span><i class="legend-dot dot-present"></i>已出席</span>
+        </div>
+        <div class="chamber-footer">
+          <div class="current-agenda"><span class="footer-label">CURRENT BUSINESS</span><strong id="current-agenda-title">確認議程</strong></div>
+          <div class="footer-actions"><button class="btn btn-quiet" id="rollcall-btn" type="button">開始點名</button><button class="btn btn-gold" id="voting-btn" type="button">開始表決</button></div>
+        </div>
+      </section>
+
+      <aside class="panel member-panel">
+        <div class="panel-heading">
+          <div><div class="eyebrow">MEMBER &amp; VOTING</div><h2>議員席次</h2></div>
+          <span class="panel-index">02</span>
+        </div>
+        <div class="selected-card">
+          <div class="selected-topline"><span class="selected-kicker">SELECTED SEAT</span><span id="seat-state" class="seat-state">待編列</span></div>
+          <div class="selected-seat-number"><span id="selected-seat-no">R1-01</span><small>議席編號</small></div>
+          <label class="field-label" for="member-name">議員姓名</label>
+          <input id="member-name" class="text-field" type="text" maxlength="32" placeholder="輸入議員姓名">
+          <label class="field-label" for="member-party">所屬黨團</label>
+          <select id="member-party" class="text-field">
+            <option value="待編列">待編列</option><option value="執政黨團">執政黨團</option><option value="在野黨團">在野黨團</option><option value="無黨籍">無黨籍</option><option value="主席團">主席團</option>
+          </select>
+          <button id="save-member" class="btn btn-gold btn-full" type="button">儲存席次資料</button>
+          <div class="field-divider"></div>
+          <div class="attendance-row">
+            <div><b>出席狀態</b><small id="attendance-hint">點名程序尚未開始</small></div>
+            <button id="attendance-toggle" class="toggle" type="button" aria-pressed="false"><span></span></button>
+          </div>
+          <div class="vote-state-row"><span>本席表決</span><strong id="member-vote">尚未投票</strong></div>
+        </div>
+        <div class="vote-card">
+          <div class="vote-card-heading"><div><div class="eyebrow">VOTING DESK</div><h3>表決操作</h3></div><span id="voting-status" class="vote-status">未開始</span></div>
+          <div class="vote-buttons">
+            <button class="vote-choice vote-yes" data-vote="贊成" type="button" disabled><b>贊成</b><small>FOR</small></button>
+            <button class="vote-choice vote-no" data-vote="反對" type="button" disabled><b>反對</b><small>AGAINST</small></button>
+            <button class="vote-choice vote-abstain" data-vote="棄權" type="button" disabled><b>棄權</b><small>ABSTAIN</small></button>
+          </div>
+          <div class="vote-totals">
+            <div><span>贊成</span><b id="yes-count">0</b></div><div><span>反對</span><b id="no-count">0</b></div><div><span>棄權</span><b id="abstain-count">0</b></div>
+          </div>
+          <div class="vote-progress"><span id="vote-progress-fill"></span></div>
+          <div class="vote-foot"><span id="vote-count-label">0 / 48 已投票</span><button id="reset-votes" type="button">重設</button></div>
+        </div>
+      </aside>
+    </main>
+
+    <footer class="bottom-bar">
+      <div class="bottom-brand"><span class="bottom-seal">W</span><span>WONGMING EMPIRE</span><i></i><span>議會議事系統</span></div>
+      <div class="bottom-stats">
+        <div><span>議席總數</span><b>48</b></div><div><span>出席人數</span><b id="present-count">0</b></div><div><span>已投票</span><b id="bottom-voted-count">0</b></div>
+      </div>
+      <div class="bottom-right"><span class="prototype-label">INTERACTIVE PROTOTYPE</span><button id="export-btn" class="export-btn" type="button">匯出本次紀錄 ↗</button></div>
+    </footer>
+  </div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
